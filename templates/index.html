@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Identification App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-btn:hover {
+            color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ecff;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .upload-text {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text strong {
+            color: #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .result-item {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .result-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .result-confidence {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .stats {
+            background: #f0f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            display: inline-block;
+            margin-right: 30px;
+            color: #333;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee;
+            border-left: 4px solid #f88;
+            color: #c33;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .success {
+            background: #efe;
+            border-left: 4px solid #8f8;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        #videoCanvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Face Identification App</h1>
+        <p class="subtitle">Identify people in photos or real-time video</p>
+        
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <div class="stat-label">People in Database</div>
+                <div class="stat-value" id="peopleCount">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Face Encodings</div>
+                <div class="stat-value" id="encodingCount">0</div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('identify')">Identify</button>
+            <button class="tab-btn" onclick="switchTab('add')">Add Person</button>
+        </div>
+        
+        <!-- Identify Tab -->
+        <div id="identify" class="tab-content active">
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageInput').click()">
+                <div class="upload-icon">📸</div>
+                <p class="upload-text">Click to upload or <strong>drag and drop</strong> an image</p>
+                <p style="color: #999; font-size: 14px;">Supported formats: JPG, PNG, BMP, GIF</p>
+            </div>
+            <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Identifying faces...</p>
+            </div>
+            
+            <div id="identifyError" class="error" style="display: none;"></div>
+            <div id="identifySuccess" class="success" style="display: none;"></div>
+            
+            <div id="results" class="results"></div>
+        </div>
+        
+        <!-- Add Person Tab -->
+        <div id="add" class="tab-content">
+            <div class="form-group">
+                <label for="personName">Person Name</label>
+                <input type="text" id="personName" placeholder="Enter the person's name">
+            </div>
+            
+            <div class="form-group">
+                <label>Face Photo</label>
+                <div class="upload-area" onclick="document.getElementById('addImageInput').click()">
+                    <div class="upload-icon">📷</div>
+                    <p class="upload-text">Click to upload or <strong>drag and drop</strong> a photo</p>
+                </div>
+                <input type="file" id="addImageInput" accept="image/*" onchange="handleAddImageSelect(event)">
+            </div>
+            
+            <img id="addImagePreview" class="preview-image" style="display: none;">
+            
+            <div id="addError" class="error" style="display: none;"></div>
+            <div id="addSuccess" class="success" style="display: none;"></div>
+            
+            <button onclick="addPerson()" style="width: 100%;">Add Person</button>
+        </div>
+    </div>
+    
+    <canvas id="videoCanvas"></canvas>
+    
+    <script>
+        let selectedImage = null;
+        let selectedAddImage = null;
+        const uploadArea = document.getElementById('uploadArea');
+        
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('imageInput').files = files;
+                handleImageSelect({ target: { files } });
+            }
+        });
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImage = e.target.result;
+                    identifyFaces();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function handleAddImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedAddImage = e.target.result;
+                    document.getElementById('addImagePreview').src = selectedAddImage;
+                    document.getElementById('addImagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function identifyFaces() {
+            if (!selectedImage) return;
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('identifyError').style.display = 'none';
+            document.getElementById('identifySuccess').style.display = 'none';
+            
+            fetch('/api/identify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: selectedImage })
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.error) {
+                    showError('identifyError', data.error);
+                    return;
+                }
+                
+                displayResults(data.identifications);
+            })
+            .catch(e => {
+                document.getElementById('loading').style.display = 'none';
+                showError('identifyError', e.message);
+            });
+        }
+        
+        function displayResults(identifications) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (identifications.length === 0) {
+                resultsDiv.innerHTML = '<p style="color: #999;">No faces detected in the image.</p>';
+                return;
+            }
+            
+            let html = `<h3 style="margin-bottom: 15px; color: #333;">Found ${identifications.length} face(s)</h3>`;
+            
+            identifications.forEach((ident, i) => {
+                const confidence = (ident.confidence * 100).toFixed(1);
+                html += `
+                    <div class="result-item">
+                        <div class="result-name">Face ${i + 1}: ${ident.name}</div>
+                        <div class="result-confidence">Confidence: ${confidence}%</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidence}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function addPerson() {
+            const name = document.getElementById('personName').value.trim();
+            const imageInput = document.getElementById('addImageInput');
+            
+            if (!name) {
+                showError('addError', 'Please enter a name');
+                return;
+            }
+            
+            if (!imageInput.files.length) {
+                showError('addError', 'Please select an image');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('image', imageInput.files[0]);
+            
+            fetch('/api/add-person', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    showError('addError', data.error);
+                } else {
+                    showSuccess('addSuccess', data.message);
+                    document.getElementById('personName').value = '';
+                    imageInput.value = '';
+                    document.getElementById('addImagePreview').style.display = 'none';
+                    loadStats();
+                }
+            })
+            .catch(e => showError('addError', e.message));
+        }
+        
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+        
+        function showSuccess(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+        
+        function loadStats() {
+            fetch('/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('peopleCount').textContent = data.unique_people;
+                    document.getElementById('encodingCount').textContent = data.total_encodings;
+                })
+                .catch(e => console.error('Error loading stats:', e));
+        }
+        
+        // Load stats on page load
+        loadStats();
+    </script>
+</body>
+</html>

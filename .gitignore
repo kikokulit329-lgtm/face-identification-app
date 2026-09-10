@@ -1,0 +1,44 @@
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Known faces directory (optional - uncomment if needed)
+# known_faces/
+
+# Flask
+instance/
+.webassets-cache
+
+# Logging
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Uploads (if using)
+uploads/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
